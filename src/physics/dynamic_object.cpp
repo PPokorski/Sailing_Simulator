@@ -2,7 +2,7 @@
 *
 * BSD 3-Clause License
 *
-*  Copyright (c) 2019, Piotr Pokorski
+*  Copyright (c) 2019, Piotr Pokorski, Piotr Rzewnicki
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,18 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <include/sailing_simulator/physics/motor_boat.hpp>
+#include "sailing_simulator/physics/dynamic_object.hpp"
 
-#include "motor_boat.hpp"
+#include <Eigen/Geometry>
 
+#include "sailing_simulator/physics/world.hpp"
+
+#include "sailing_simulator/constants.hpp"
+
+#include <iostream>
+
+namespace sailing_simulator {
+namespace physics {
 b2Vec2 getWindForcePoint(const std::vector<b2Vec2>& polygon, const b2Vec2& wind_vector, const b2EdgeShape& axis) {
   b2Vec2 unit_wind = wind_vector;
   unit_wind.Normalize();
@@ -77,76 +85,49 @@ b2Vec2 getWindForcePoint(const std::vector<b2Vec2>& polygon, const b2Vec2& wind_
   return b2Vec2(resulting_point(0), resulting_point(1));
 }
 
-MotorBoat::MotorBoat(b2World& world, b2Body* ground_body) :
-    max_speed_(10.0),
-    max_steer_position_(b2_pi / 4.0),
-    steer_position_(0.0),
-    thrust_(50.0),
-    points_({
-        b2Vec2(1.0, 0.0),
-        b2Vec2(-0.5, 0.5),
-        b2Vec2(-0.5, -0.5)
-    }) {
-    b2PolygonShape shape;
-    shape.Set(points_.data(), points_.size());
+DynamicObject::DynamicObject(World& world,
+                             const b2PolygonShape& shape,
+                             const b2Vec2& position,
+                             const b2EdgeShape& axis)
+    : Object(world, shape, b2_dynamicBody, position),
+      axis_(axis),
+      steer_position_(0.0) {
+  body_->SetLinearDamping(LINEAR_DAMPING);
+  body_->SetAngularDamping(ANGULAR_DAMPING);
 
-    b2FixtureDef fixture_def;
-    fixture_def.shape = &shape;
-    fixture_def.density = 1.0f;
-    fixture_def.friction = 0.3f;
+  fixture_->SetDensity(DENSITY);
+  fixture_->SetFriction(FRICTION);
+  body_->ResetMassData();
 
-    b2BodyDef body_def;
-    body_def.type = b2_dynamicBody;
-    body_def.position.Set(5.0f, 5.0f);
-    body_def.active = true;
-    body_def.linearDamping = 0.6f;
-    body_def.angularDamping = 2.0f;
-
-    body_ = world.CreateBody(&body_def);
-
-    body_->CreateFixture(&fixture_def);
-    float32 gravity = 10.0f;
-    float32 mass = body_->GetMass();
-
-    b2FrictionJointDef joint_def;
-    joint_def.localAnchorA.SetZero();
-    joint_def.localAnchorB.SetZero();
-    joint_def.bodyA = ground_body;
-    joint_def.bodyB = body_;
-    joint_def.collideConnected = true;
-    joint_def.maxForce = mass * gravity;
-    joint_def.maxTorque = 0.02 * mass * gravity;
-
-    world.CreateJoint(&joint_def);
+  createFrictionJoint(world);
 }
 
-void MotorBoat::process(b2World& world) {
-    b2Vec2 velocity = body_->GetLinearVelocity();
-    float32 speed = velocity.Length();
+void DynamicObject::process(World& world) {
+  Entity::process(world);
 
-    if (speed > max_speed_)
-    {
-        velocity *= (max_speed_ / speed);
-        body_->SetLinearVelocity(velocity);
-    }
+  b2Vec2 wind_force = world.getWind()->getWind(getPosition());
+  if (wind_force.Length() < 0.1) {
+    return;
+  }
+  b2Vec2 local_wind_force = body_->GetLocalVector(wind_force);
+  b2Vec2 local_point = getWindForcePoint(shape_, local_wind_force, axis_);
 
-    b2Vec2 wind_force(0.0f, 15.0f);
-    b2Vec2 local_wind_force = body_->GetLocalVector(wind_force);
-    b2EdgeShape boat_axis;
-    boat_axis.Set({-0.5f, 0.0f}, {1.0f, 0.0f});
-    b2Vec2 local_point = getWindForcePoint({points_.begin(), points_.end()},
-            local_wind_force, boat_axis);
+  b2Vec2 wind_position = body_->GetWorldPoint(local_point);
 
-    wind_position_ = body_->GetWorldPoint(local_point);
-    body_->ApplyForce(wind_force, wind_position_, true);
+  body_->ApplyForce(wind_force, wind_position, true);
 }
 
-void MotorBoat::useThrust() {
-    b2Vec2 thrust_vector(std::cos(steer_position_) * thrust_,
-                         std::sin(steer_position_) * thrust_);
+void DynamicObject::createFrictionJoint(World& world) {
+  b2FrictionJointDef joint_definition;
+  joint_definition.localAnchorA.SetZero();
+  joint_definition.localAnchorB.SetZero();
+  joint_definition.bodyA = world.getGroundBody();
+  joint_definition.bodyB = body_;
+  joint_definition.collideConnected = true;
+  joint_definition.maxForce = MAX_FORCE;
+  joint_definition.maxTorque = MAX_TORQUE;
 
-    b2Vec2 thrust_position = body_->GetWorldPoint(b2Vec2(-0.5, 0.0));
-    b2Vec2 thrust_force = body_->GetWorldVector(thrust_vector);
-
-    body_->ApplyForce(thrust_force, thrust_position, true);
+  world.getWorld().CreateJoint(&joint_definition);
 }
+}  // namespace physics {
+}  // namespace sailing_simulator

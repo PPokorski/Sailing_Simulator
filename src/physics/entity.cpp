@@ -2,7 +2,7 @@
 *
 * BSD 3-Clause License
 *
-*  Copyright (c) 2019, Piotr Pokorski
+*  Copyright (c) 2019, Piotr Pokorski, Piotr Rzewnicki
 *  All rights reserved.
 *
 *  Redistribution and use in source and binary forms, with or without
@@ -31,40 +31,4 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef _MAIN_WINDOW_HPP
-#define _MAIN_WINDOW_HPP
-
-#include <QMainWindow>
-#include <Box2D/Box2D.h>
-#include <QtCore/QTimer>
-#include <QLabel>
-
-#include "motor_boat.hpp"
-
-namespace Ui {
-class MainWindow;
-}  // namespace Ui
-
-class MainWindow : public QMainWindow {
-    Q_OBJECT
- public:
-    explicit MainWindow(QWidget* parent = nullptr);
-    void paintEvent(QPaintEvent* event) override;
-    void keyPressEvent(QKeyEvent* event) override;
-    void keyReleaseEvent(QKeyEvent* event) override;
-    ~MainWindow();
-
- public slots:
-    void updateEngine();
-
- private:
-    bool thrust_, turn_left_, turn_right_;
-    Ui::MainWindow* ui_;
-    QTimer* timer_;
-    QLabel* label_;
-    b2World world_;
-    std::unique_ptr<MotorBoat> motor_boat_;
-};
-
-
-#endif //_MAIN_WINDOW_HPP
+#include "include/sailing_simulator/physics/entity.hpp"
