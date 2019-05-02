@@ -105,18 +105,21 @@ b2Vec2 getWindForcePoint(const std::vector<b2Vec2>& polygon, const b2Vec2& wind_
   return b2Vec2(resulting_point(0), resulting_point(1));
 }
 
-WindDynamicsComponent::WindDynamicsComponent(DynamicBodyComponent& body_)
-    : body_(body_) {}
+WindDynamicsComponent::WindDynamicsComponent(DynamicBodyComponent::Ptr body)
+    : body_(body) {}
 
 void WindDynamicsComponent::update(GameObject& object, World& world) {
-  b2Vec2 global_wind = world.getWind()->getWind(body_.getPosition());
-  b2Vec2 local_wind = body_.getLocalVector(global_wind);
+  if (auto body_ptr = body_.lock())
+  {
+    b2Vec2 global_wind = world.getWind()->getWind(body_ptr->getPosition());
+    b2Vec2 local_wind = body_ptr->getLocalVector(global_wind);
 
-  b2Vec2 wind_local_position = getWindForcePoint(body_.getShape(), local_wind, body_.getAxis());
+    b2Vec2 wind_local_position = getWindForcePoint(body_ptr->getShape(), local_wind, body_ptr->getAxis());
 
-  local_wind *= NEWTONS_PER_M * getProjectionLength(body_.getShape(), getLineParallelToWind(local_wind));
+    local_wind *= NEWTONS_PER_M * getProjectionLength(body_ptr->getShape(), getLineParallelToWind(local_wind));
 
-  body_.applyLocalForce(local_wind, wind_local_position);
+    body_ptr->applyLocalForce(local_wind, wind_local_position);
+  }
 }
 }  // namespace objects
 }  // namespace sailing_simulator

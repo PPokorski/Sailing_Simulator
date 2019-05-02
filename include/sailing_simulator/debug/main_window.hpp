@@ -41,7 +41,7 @@
 #include <Box2D/Common/b2Draw.h>
 #include <QtWidgets/QLabel>
 
-#include "sailing_simulator/physics/world.hpp"
+#include "sailing_simulator/objects/world.hpp"
 
 namespace Ui {
 class MainWindow;
@@ -92,7 +92,7 @@ class MainWindow : public QMainWindow, public b2Draw {
   QTimer* timer_;
   QLabel* label_;
 
-  physics::World world_;
+  objects::World world_;
   bool turn_left_, turn_right_;
 };
 }  // namespace debug

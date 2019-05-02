@@ -49,10 +49,6 @@ MainWindow::MainWindow(QWidget* parent)
   world_.getWorld().SetDebugDraw(this);
   SetFlags(b2Draw::e_shapeBit);
 
-  physics::BaseWind::Ptr wind(new physics::ConstantWind(world_, b2Vec2(10.0f, 0.0f)));
-
-  world_.setWind(wind);
-
   b2PolygonShape shape;
   b2Vec2 edges[5] {
       b2Vec2(1.0f, 0.00f),
@@ -68,7 +64,7 @@ MainWindow::MainWindow(QWidget* parent)
   b2Vec2 engine_position(-0.5f, 0.0f);
   double thrust = 20.0;
 
-  world_.addMotorBoat(shape, position, edge_shape, engine_position, thrust);
+  world_.addMotorBoat(shape, position);
 
   timer_ = new QTimer(this);
   connect(timer_, SIGNAL(timeout()), this, SLOT(updateEngine()));
@@ -105,13 +101,13 @@ void MainWindow::paintEvent(QPaintEvent* event) {
   painter.setBrush(point_.second);
   painter.drawRect(point_.first);
 
-  QString string = QString("Linear velocity: %1 %2\nAngular velocity: %3\nSteer position: %4").
-      arg(world_.getMotorBoat()->getLinearVelocity().x).
-      arg(world_.getMotorBoat()->getLinearVelocity().y).
-      arg(world_.getMotorBoat()->getAngularVelocity()).
-      arg(world_.getMotorBoat()->getSteerPosition());
-  label_->setText(string);
-  label_->adjustSize();
+//  QString string = QString("Linear velocity: %1 %2\nAngular velocity: %3\nSteer position: %4").
+//      arg(world_.getMotorBoat()->getLinearVelocity().x).
+//      arg(world_.getMotorBoat()->getLinearVelocity().y).
+//      arg(world_.getMotorBoat()->getAngularVelocity()).
+//      arg(world_.getMotorBoat()->getSteerPosition());
+//  label_->setText(string);
+//  label_->adjustSize();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
@@ -119,15 +115,15 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 
   switch (event->key())
   {
-    case Qt::Key_Up:
-      world_.getMotorBoat()->thrustOn();
-      break;
-    case Qt::Key_Left:
-      turn_left_ = true;
-      break;
-    case Qt::Key_Right:
-      turn_right_ = true;
-      break;
+//    case Qt::Key_Up:
+//      world_.getMotorBoat()->thrustOn();
+//      break;
+//    case Qt::Key_Left:
+//      turn_left_ = true;
+//      break;
+//    case Qt::Key_Right:
+//      turn_right_ = true;
+//      break;
   }
 }
 
@@ -136,15 +132,15 @@ void MainWindow::keyReleaseEvent(QKeyEvent *event) {
 
   switch (event->key())
   {
-    case Qt::Key_Up:
-      world_.getMotorBoat()->thrustOff();
-      break;
-    case Qt::Key_Left:
-      turn_left_ = false;
-      break;
-    case Qt::Key_Right:
-      turn_right_ = false;
-      break;
+//    case Qt::Key_Up:
+//      world_.getMotorBoat()->thrustOff();
+//      break;
+//    case Qt::Key_Left:
+//      turn_left_ = false;
+//      break;
+//    case Qt::Key_Right:
+//      turn_right_ = false;
+//      break;
   }
 }
 
@@ -221,10 +217,10 @@ void MainWindow::DrawPoint(const b2Vec2& p, float32 size, const b2Color& color) 
 void MainWindow::updateEngine() {
   constexpr double STEER_CHANGE = 0.02;
   if (turn_left_) {
-    world_.getMotorBoat()->moveSteer(STEER_CHANGE);
+//    world_.getMotorBoat()->moveSteer(STEER_CHANGE);
   }
   if (turn_right_) {
-    world_.getMotorBoat()->moveSteer(-STEER_CHANGE);
+//    world_.getMotorBoat()->moveSteer(-STEER_CHANGE);
   }
 
   world_.step();

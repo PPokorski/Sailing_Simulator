@@ -55,5 +55,8 @@ StaticBodyComponent::StaticBodyComponent(World& world, const b2PolygonShape& sha
     shape_.at(i) = shape.m_vertices[i];
   }
 }
+
+void StaticBodyComponent::update(GameObject& object, World& world) {
+}
 }  // namespace objects
 }  // namespace sailing_simulator

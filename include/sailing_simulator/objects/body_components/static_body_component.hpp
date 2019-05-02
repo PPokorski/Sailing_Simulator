@@ -46,6 +46,8 @@ class StaticBodyComponent : public BodyComponent {
   StaticBodyComponent(World& world,
                       const b2PolygonShape& shape,
                       const b2Vec2& position);
+
+  void update(GameObject& object, World& world) override;
 };
 }  // namespace objects
 }  // namespace sailing_simulator

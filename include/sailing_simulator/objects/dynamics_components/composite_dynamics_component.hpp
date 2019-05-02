@@ -31,33 +31,28 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "sailing_simulator/objects/world.hpp"
+#ifndef SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_COMPOSITE_DYNAMICS_COMPONENT_HPP
+#define SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_COMPOSITE_DYNAMICS_COMPONENT_HPP
 
-#include "sailing_simulator/constants.hpp"
-#include "sailing_simulator/objects/wind/constant_wind.hpp"
+#include <vector>
+
+#include "sailing_simulator/objects/dynamics_components/dynamics_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-World::World()
-    : World(1 / FRAMERATE, VELOCITY_ITERATIONS, POSITION_ITERATIONS) {}
+class CompositeDynamicsComponent : public DynamicsComponent {
+ public:
+  CompositeDynamicsComponent(std::vector<DynamicsComponent::Ptr> children);
 
-World::World(double time_step, int velocity_iterations, int position_iterations)
-    : world_(b2Vec2(0.0f, 0.0f)),
-      time_step_(time_step),
-      velocity_iterations_(velocity_iterations),
-      position_iterations_(position_iterations) {
-  b2BodyDef ground_definition;
-  ground_definition.position.SetZero();
-  ground_body_ = world_.CreateBody(&ground_definition);
+  void update(GameObject& object, World& world) override;
 
-  wind_.reset(new ConstantWind(b2Vec2(0.0f, 0.0f)));
-}
+  void add(DynamicsComponent::Ptr child);
 
-void World::step() {
-  for (auto& object : objects_) {
-    object.update(*this);
-  }
-  world_.Step(time_step_, velocity_iterations_, position_iterations_);
-}
+ protected:
+  std::vector<DynamicsComponent::Ptr> children_;
+};
+
 }  // namespace objects
 }  // namespace sailing_simulator
+
+#endif //SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_COMPOSITE_DYNAMICS_COMPONENT_HPP

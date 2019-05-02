@@ -45,6 +45,13 @@ class GameObject {
   using Ptr = std::shared_ptr<GameObject>;
   using ConstPtr = std::shared_ptr<GameObject>;
 
+  GameObject(BodyComponent::Ptr body_component,
+             DynamicsComponent::Ptr dynamics_component,
+             InputComponent::Ptr input_component)
+    : body_component_(std::move(body_component)),
+      dynamics_component_(std::move(dynamics_component)),
+      input_component_(std::move(input_component)) {}
+
   virtual void update(World& world) {
     if (body_component_) {
       body_component_->update(*this, world);

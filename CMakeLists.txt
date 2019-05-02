@@ -32,6 +32,7 @@ set(PHYSICS_SRC
 set(OBJECTS_SRC
         src/objects/body_components/dynamic_body_component.cpp
         src/objects/body_components/static_body_component.cpp
+        src/objects/dynamics_components/composite_dynamics_component.cpp
         src/objects/dynamics_components/engine_dynamics_component.cpp
         src/objects/dynamics_components/wind_dynamics_component.cpp
         src/objects/world.cpp)

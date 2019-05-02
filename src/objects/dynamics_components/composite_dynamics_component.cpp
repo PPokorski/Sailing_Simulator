@@ -31,33 +31,22 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "sailing_simulator/objects/world.hpp"
-
-#include "sailing_simulator/constants.hpp"
-#include "sailing_simulator/objects/wind/constant_wind.hpp"
+#include "include/sailing_simulator/objects/dynamics_components/composite_dynamics_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-World::World()
-    : World(1 / FRAMERATE, VELOCITY_ITERATIONS, POSITION_ITERATIONS) {}
 
-World::World(double time_step, int velocity_iterations, int position_iterations)
-    : world_(b2Vec2(0.0f, 0.0f)),
-      time_step_(time_step),
-      velocity_iterations_(velocity_iterations),
-      position_iterations_(position_iterations) {
-  b2BodyDef ground_definition;
-  ground_definition.position.SetZero();
-  ground_body_ = world_.CreateBody(&ground_definition);
+CompositeDynamicsComponent::CompositeDynamicsComponent(std::vector<DynamicsComponent::Ptr> children)
+    : children_(std::move(children)) {}
 
-  wind_.reset(new ConstantWind(b2Vec2(0.0f, 0.0f)));
+void CompositeDynamicsComponent::update(GameObject& object, World& world) {
+  for (auto& child : children_) {
+    child->update(object, world);
+  }
 }
 
-void World::step() {
-  for (auto& object : objects_) {
-    object.update(*this);
-  }
-  world_.Step(time_step_, velocity_iterations_, position_iterations_);
+void CompositeDynamicsComponent::add(DynamicsComponent::Ptr child) {
+  children_.push_back(std::move(child));
 }
 }  // namespace objects
 }  // namespace sailing_simulator

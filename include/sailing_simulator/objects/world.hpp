@@ -36,7 +36,10 @@
 
 #include <Box2D/Box2D.h>
 
-#include "sailing_simulator/physics/base_wind.hpp"
+#include "sailing_simulator/objects/game_object.hpp"
+#include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
+#include "sailing_simulator/objects/dynamics_components/wind_dynamics_component.hpp"
+#include "sailing_simulator/objects/wind/base_wind.hpp"
 
 namespace sailing_simulator {
 namespace objects {
@@ -47,6 +50,13 @@ class World {
   World(double time_step, int velocity_iterations, int position_iterations);
 
   void step();
+
+  void addMotorBoat(const b2PolygonShape& shape,
+                    const b2Vec2& position) {
+    auto body = std::make_shared<DynamicBodyComponent>(*this, shape, position);
+    auto dynamics = std::make_shared<WindDynamicsComponent>(body);
+    objects_.emplace_back(body, dynamics, nullptr);
+  }
 
   const b2World& getWorld() const {
     return world_;
@@ -64,7 +74,7 @@ class World {
     return *ground_body_;
   }
 
-  physics::BaseWind::ConstPtr getWind() const {
+  BaseWind::ConstPtr getWind() const {
     return wind_;
   }
 
@@ -96,7 +106,9 @@ class World {
   b2World world_;
   b2Body* ground_body_;
 
-  physics::BaseWind::Ptr wind_;
+  std::vector<GameObject> objects_;
+
+  BaseWind::Ptr wind_;
 
   double time_step_;
   int velocity_iterations_;

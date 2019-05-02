@@ -38,7 +38,7 @@
 
 namespace sailing_simulator {
 namespace objects {
-EngineDynamicsComponent::EngineDynamicsComponent(DynamicBodyComponent& body,
+EngineDynamicsComponent::EngineDynamicsComponent(DynamicBodyComponent::Ptr body,
                                                  double max_thrust_forward,
                                                  double max_thrust_backwards,
                                                  const b2Vec2& thrust_position)
@@ -51,10 +51,13 @@ EngineDynamicsComponent::EngineDynamicsComponent(DynamicBodyComponent& body,
 
 
 void EngineDynamicsComponent::update(GameObject& object, World& world) {
-  b2Vec2 thrust_vector(std::cos(engine_orientation_) * current_thrust_,
-                       std::sin(engine_orientation_) * current_thrust_);
+  if (auto body_ptr = body_.lock())
+  {
+    b2Vec2 thrust_vector(std::cos(engine_orientation_) * current_thrust_,
+                         std::sin(engine_orientation_) * current_thrust_);
 
-  body_.applyLocalForce(thrust_vector, thrust_position_);
+    body_ptr->applyLocalForce(thrust_vector, thrust_position_);
+  }
 }
 }  // namespace objects
 }  // namespace sailing_simulator

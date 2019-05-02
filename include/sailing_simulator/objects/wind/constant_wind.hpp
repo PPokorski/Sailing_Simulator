@@ -31,33 +31,29 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "sailing_simulator/objects/world.hpp"
+#ifndef SAILING_SIMULATOR_OBJECTS_WIND_CONSTANT_WIND_HPP
+#define SAILING_SIMULATOR_OBJECTS_WIND_CONSTANT_WIND_HPP
 
-#include "sailing_simulator/constants.hpp"
-#include "sailing_simulator/objects/wind/constant_wind.hpp"
+#include "sailing_simulator/objects/wind/base_wind.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-World::World()
-    : World(1 / FRAMERATE, VELOCITY_ITERATIONS, POSITION_ITERATIONS) {}
+class ConstantWind : public BaseWind {
+ public:
+  using Ptr = std::shared_ptr<ConstantWind>;
+  using ConstPtr = std::shared_ptr<const ConstantWind>;
 
-World::World(double time_step, int velocity_iterations, int position_iterations)
-    : world_(b2Vec2(0.0f, 0.0f)),
-      time_step_(time_step),
-      velocity_iterations_(velocity_iterations),
-      position_iterations_(position_iterations) {
-  b2BodyDef ground_definition;
-  ground_definition.position.SetZero();
-  ground_body_ = world_.CreateBody(&ground_definition);
+  ConstantWind(const b2Vec2& wind) : wind_(wind) {}
 
-  wind_.reset(new ConstantWind(b2Vec2(0.0f, 0.0f)));
-}
-
-void World::step() {
-  for (auto& object : objects_) {
-    object.update(*this);
+  b2Vec2 getWind(b2Vec2 position) const override {
+    return wind_;
   }
-  world_.Step(time_step_, velocity_iterations_, position_iterations_);
-}
+
+ protected:
+  b2Vec2 wind_;
+};
+
 }  // namespace objects
 }  // namespace sailing_simulator
+
+#endif //SAILING_SIMULATOR_OBJECTS_WIND_CONSTANT_WIND_HPP

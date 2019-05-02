@@ -67,12 +67,12 @@ class WindDynamicsComponent : public DynamicsComponent {
   using Ptr = std::shared_ptr<WindDynamicsComponent>;
   using ConstPtr = std::shared_ptr<WindDynamicsComponent>;
 
-  WindDynamicsComponent(DynamicBodyComponent& body_);
+  WindDynamicsComponent(DynamicBodyComponent::Ptr body);
 
   void update(GameObject& object, World& world) override;
 
  protected:
-  DynamicBodyComponent& body_;
+  std::weak_ptr<DynamicBodyComponent> body_;
 };
 
 }  // namespace objects

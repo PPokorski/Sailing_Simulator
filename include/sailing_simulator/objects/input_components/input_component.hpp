@@ -57,8 +57,8 @@ class InputComponent {
 
   virtual ~InputComponent() = default;
 
- protected:
-  std::unordered_map<Action, std::function<void()>> bindings_;
+// protected:
+//  std::unordered_map<Action, std::function<void()>> bindings_;
 };
 
 }  // namespace objects

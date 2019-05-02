@@ -46,7 +46,7 @@ class EngineDynamicsComponent : public DynamicsComponent {
 
   static constexpr double MAX_ENGINE_ORIENTATION_ = M_PI_2;
 
-  EngineDynamicsComponent(DynamicBodyComponent& body,
+  EngineDynamicsComponent(DynamicBodyComponent::Ptr body,
                           double max_thrust_forward,
                           double max_thrust_backwards,
                           const b2Vec2& thrust_position);
@@ -114,7 +114,7 @@ class EngineDynamicsComponent : public DynamicsComponent {
     engine_orientation_ = b2Clamp(engine_orientation_, -MAX_ENGINE_ORIENTATION_, MAX_ENGINE_ORIENTATION_);
   }
 
-  DynamicBodyComponent& body_;
+  std::weak_ptr<DynamicBodyComponent> body_;
 
   double max_thrust_forward_;
   double max_thrust_backwards_;

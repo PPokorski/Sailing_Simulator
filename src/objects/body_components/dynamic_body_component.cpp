@@ -73,5 +73,8 @@ DynamicBodyComponent::DynamicBodyComponent(World& world, const b2PolygonShape& s
 
   world.getWorld().CreateJoint(&joint_definition);
 }
+
+void DynamicBodyComponent::update(GameObject& object, World& world) {
+}
 }  // namespace objects
 }  // namespace sailing_simulator
