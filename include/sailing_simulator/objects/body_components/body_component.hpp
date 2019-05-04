@@ -99,12 +99,6 @@ class BodyComponent {
     return shape_;
   }
 
-  // TODO Implement this
-  b2EdgeShape getAxis() const {
-    assert(false);
-    return {};
-  }
-
  protected:
   b2Body* body_;
   b2Fixture* fixture_;

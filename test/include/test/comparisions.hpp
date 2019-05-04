@@ -31,21 +31,21 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_CONSTANTS_HPP
-#define SAILING_SIMULATOR_CONSTANTS_HPP
+#ifndef TEST_TEST_COMPARISIONS_HPP
+#define TEST_TEST_COMPARISIONS_HPP
 
-static constexpr double DENSITY = 1.0;
-static constexpr double FRICTION = 0.3;
-static constexpr double LINEAR_DAMPING = 0.6f;
-static constexpr double ANGULAR_DAMPING = 2.0f;
-static constexpr double MAX_FORCE = 7.5;
-static constexpr double MAX_TORQUE = 0.15;
-static constexpr int VELOCITY_ITERATIONS = 6;
-static constexpr int POSITION_ITERATIONS = 2;
-static constexpr double FRAMERATE = 60.0;
-static constexpr double STEER_LENGTH = 0.5;
-static constexpr double NEWTONS_PER_MPS = 10.0;
-static constexpr double NEWTONS_PER_M = 5.0;
-static constexpr double SMALL_WIND = 0.01;
+#include <Box2D/Box2D.h>
 
-#endif //SAILING_SIMULATOR_CONSTANTS_HPP
+namespace comparisions {
+
+template<class T>
+constexpr static T PRECISION = T(0.0001);
+
+}  // namespace comparisions
+
+inline bool operator==(const b2EdgeShape& lhs, const b2EdgeShape& rhs) {
+  return lhs.m_vertex1 == rhs.m_vertex1 &&
+         lhs.m_vertex2 == rhs.m_vertex2;
+}
+
+#endif //TEST_TEST_COMPARISIONS_HPP

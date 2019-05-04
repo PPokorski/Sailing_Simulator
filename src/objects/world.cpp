@@ -42,15 +42,14 @@ World::World()
     : World(1 / FRAMERATE, VELOCITY_ITERATIONS, POSITION_ITERATIONS) {}
 
 World::World(double time_step, int velocity_iterations, int position_iterations)
-    : world_(b2Vec2(0.0f, 0.0f)),
+    : world_(b2Vec2_zero),
+      wind_(new ConstantWind(b2Vec2_zero)),
       time_step_(time_step),
       velocity_iterations_(velocity_iterations),
       position_iterations_(position_iterations) {
   b2BodyDef ground_definition;
   ground_definition.position.SetZero();
   ground_body_ = world_.CreateBody(&ground_definition);
-
-  wind_.reset(new ConstantWind(b2Vec2(0.0f, 0.0f)));
 }
 
 void World::step() {

@@ -37,13 +37,36 @@ set(OBJECTS_SRC
         src/objects/dynamics_components/wind_dynamics_component.cpp
         src/objects/world.cpp)
 
-#add_executable(sailing_simulator main.cpp main_window.cpp motor_boat.cpp ${PHYSICS_SRC})
-#target_link_libraries(sailing_simulator TG::Box2D Qt5::Widgets Eigen3::Eigen)
+add_library(${PROJECT_NAME}_lib
+        ${OBJECTS_SRC})
 
-add_executable(physics_test
+target_link_libraries(${PROJECT_NAME}_lib
+        TG::Box2D
+        Eigen3::Eigen)
+
+add_executable(${PROJECT_NAME}
         src/physics_test.cpp
         include/sailing_simulator/debug/main_window.hpp
-        src/debug/main_window.cpp
-        ${PHYSICS_SRC}
-        ${OBJECTS_SRC})
-target_link_libraries(physics_test TG::Box2D Qt5::Widgets Eigen3::Eigen)
+        src/debug/main_window.cpp)
+
+target_link_libraries(${PROJECT_NAME}
+        ${PROJECT_NAME}_lib
+        TG::Box2D
+        Qt5::Widgets
+        Eigen3::Eigen)
+
+add_executable(${PROJECT_NAME}_test
+        test/src/objects/body_components/dynamic_body_component_test.cpp
+        test/src/objects/dynamics_components/wind_dynamics_component_test.cpp)
+
+include_directories(test/include)
+
+target_link_libraries(${PROJECT_NAME}_test
+        ${PROJECT_NAME}_lib
+        Eigen3::Eigen
+        TG::Box2D
+        gtest
+        gtest_main)
+
+add_test(NAME ${PROJECT_NAME}_test
+         COMMAND ${PROJECT_NAME}_test)

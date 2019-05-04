@@ -58,9 +58,11 @@ void projectPolygonOntoLine(const std::vector<b2Vec2>& polygon,
 double getProjectionLength(const std::vector<b2Vec2>& polygon,
                            const internal::Line2D& line);
 
-internal::Line2D getLineParallelToWind(const b2Vec2& wind_vector);
+internal::Line2D getLinePerpendicularToWind(const b2Vec2& wind_vector);
 
 b2Vec2 getWindForcePoint(const std::vector<b2Vec2>& polygon, const b2Vec2& wind_vector, const b2EdgeShape& axis);
+
+b2EdgeShape getAxisOfPolygon(const std::vector<b2Vec2>& polygon);
 
 class WindDynamicsComponent : public DynamicsComponent {
  public:
@@ -73,6 +75,7 @@ class WindDynamicsComponent : public DynamicsComponent {
 
  protected:
   std::weak_ptr<DynamicBodyComponent> body_;
+  b2EdgeShape symmetry_axis_;
 };
 
 }  // namespace objects

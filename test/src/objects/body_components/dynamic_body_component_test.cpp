@@ -31,21 +31,39 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_CONSTANTS_HPP
-#define SAILING_SIMULATOR_CONSTANTS_HPP
+#include <gtest/gtest.h>
 
-static constexpr double DENSITY = 1.0;
-static constexpr double FRICTION = 0.3;
-static constexpr double LINEAR_DAMPING = 0.6f;
-static constexpr double ANGULAR_DAMPING = 2.0f;
-static constexpr double MAX_FORCE = 7.5;
-static constexpr double MAX_TORQUE = 0.15;
-static constexpr int VELOCITY_ITERATIONS = 6;
-static constexpr int POSITION_ITERATIONS = 2;
-static constexpr double FRAMERATE = 60.0;
-static constexpr double STEER_LENGTH = 0.5;
-static constexpr double NEWTONS_PER_MPS = 10.0;
-static constexpr double NEWTONS_PER_M = 5.0;
-static constexpr double SMALL_WIND = 0.01;
+#include "sailing_simulator/objects/world.hpp"
+#include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
 
-#endif //SAILING_SIMULATOR_CONSTANTS_HPP
+#include "test/comparisions.hpp"
+
+TEST(DynamicBodyComponentTest, AccessorsTest) {
+  sailing_simulator::objects::World world;
+
+  b2PolygonShape shape;
+  b2Vec2 edges[4] {
+    b2Vec2(0.0f, 0.0f),
+    b2Vec2(1.0f, 0.0f),
+    b2Vec2(1.0f, 1.0f),
+    b2Vec2(0.0f, 1.0f)
+  };
+  shape.Set(edges, 4);
+
+  b2Vec2 position(2.0f, 2.0f);
+
+  sailing_simulator::objects::DynamicBodyComponent component(world, shape, position);
+
+  EXPECT_EQ(position, component.getPosition());
+  auto body_shape = component.getShape();
+
+  EXPECT_EQ(0.0, component.getOrientation());
+
+  ASSERT_EQ(shape.m_count, body_shape.size());
+  for (int i = 0; i < body_shape.size(); ++i) {
+    EXPECT_EQ(shape.m_vertices[i], body_shape.at(i));
+  }
+
+  EXPECT_EQ(b2Vec2_zero, component.getLinearVelocity());
+  EXPECT_EQ(0.0, component.getAngularVelocity());
+}
