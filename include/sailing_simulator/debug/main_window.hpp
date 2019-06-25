@@ -71,6 +71,15 @@ class MainWindow : public QMainWindow, public b2Draw {
  public slots:
   void updateEngine();
 
+ signals:
+  void rotateRudder(double rudder_orientation_change);
+
+  void rotateEngine(double engine_orientation_change);
+
+  void changeThrust(double current_thrust_change);
+
+  void setCurrentThrust(double current_thrust);
+
  private:
   QPointF fromSimulation(const b2Vec2& vector) {
     constexpr int RATIO = 20;
@@ -93,6 +102,8 @@ class MainWindow : public QMainWindow, public b2Draw {
   QLabel* label_;
 
   objects::World world_;
+  objects::EngineDynamicsComponent::Ptr engine_;
+  objects::RudderDynamicsComponent::Ptr rudder_;
   bool turn_left_, turn_right_;
 };
 }  // namespace debug

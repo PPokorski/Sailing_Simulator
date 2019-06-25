@@ -31,36 +31,58 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#ifndef SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_RUDDER_DYNAMICS_COMPONENT_HPP
+#define SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_RUDDER_DYNAMICS_COMPONENT_HPP
 
-#include <memory>
+#include "sailing_simulator/objects/dynamics_components/dynamics_component.hpp"
+#include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-class GameObject;
-
-class InputComponent {
+class RudderDynamicsComponent : public DynamicsComponent {
  public:
-  using Ptr = std::shared_ptr<InputComponent>;
-  using ConstPtr = std::shared_ptr<InputComponent>;
+  using Ptr = std::shared_ptr<RudderDynamicsComponent>;
+  using ConstPtr = std::shared_ptr<RudderDynamicsComponent>;
 
-  enum class Action {
-    STEER_LEFT,
-    STEER_RIGHT,
-    USE_THRUST,
-    THRUST_UP,
-    THRUST_DOWN,
-    SAIL_LOOSE,
-    SAIL_TIGHT
-  };
+  static constexpr double MAX_RUDDER_ORIENTATION = M_PI_2;
 
-  virtual void update(GameObject& object) = 0;
+  RudderDynamicsComponent(DynamicBodyComponent::Ptr body,
+                          double force_multiplier,
+                          double rudder_length,
+                          const b2Vec2& rudder_position);
 
-  virtual ~InputComponent() = default;
+  void update(GameObject& object, World& world) override;
+
+  double getRudderOrientation() const {
+    return rudder_orientation_;
+  }
+
+  void setRudderOrientation(double rudder_orientation) {
+    rudder_orientation_ = rudder_orientation;
+    limitRudderOrientation();
+  }
+
+  void rotateRudder(double rudder_orientation_change) {
+    rudder_orientation_ += rudder_orientation_change;
+    limitRudderOrientation();
+  }
+
+ protected:
+  void limitRudderOrientation() {
+    rudder_orientation_ = b2Clamp(rudder_orientation_, -MAX_RUDDER_ORIENTATION, MAX_RUDDER_ORIENTATION);
+  }
+  double sinBetweenVectors(const b2Vec2& one, const b2Vec2& two) const;
+
+  std::weak_ptr<DynamicBodyComponent> body_;
+
+  double force_multiplier_;
+  double rudder_length_;
+
+  b2Vec2 rudder_position_;
+
+  double rudder_orientation_;
 };
-
 }  // namespace objects
 }  // namespace sailing_simulator
 
-#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#endif //SAILING_SIMULATOR_OBJECTS_DYNAMICS_COMPONENTS_RUDDER_DYNAMICS_COMPONENT_HPP

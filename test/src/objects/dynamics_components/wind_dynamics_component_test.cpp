@@ -31,131 +31,184 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <cmath>
-
 #include <gtest/gtest.h>
 
 #include "sailing_simulator/objects/world.hpp"
 #include "sailing_simulator/objects/dynamics_components/wind_dynamics_component.hpp"
+#include "sailing_simulator/objects/wind/constant_wind.hpp"
 
 #include "test/comparisions.hpp"
+#include "test/dynamic_body_component_stub.hpp"
 
 using namespace sailing_simulator::objects;
 
-TEST(WindDynamicsComponentsTest, ProjectPolygonOntoLineTest) {
-  std::vector<b2Vec2> polygon {
-    b2Vec2(0.0f, 0.0f),
-    b2Vec2(1.0f, 1.0f),
-    b2Vec2(1.5f, 2.0f),
-    b2Vec2(2.0f, 1.5f)
-  };
+class WindDynamicsComponentTest : public testing::Test {
+ protected:
+  WindDynamicsComponentTest()
+      : Test(),
+        world_(),
+        game_object_(nullptr, nullptr, nullptr) {}
 
-  internal::Line2D line;
-  line.coeffs() << 1.0, 0.0, 0.0;
+  World world_;
+  GameObject game_object_;
+  test::DynamicBodyComponentStub::Ptr body_component_;
+  WindDynamicsComponent::Ptr dynamic_component_;
+};
 
-  internal::Point2D min, max;
-  projectPolygonOntoLine(polygon, line, min, max);
-
-  internal::Point2D expected_min, expected_max;
-  expected_min << 0.0f, 0.0f;
-  expected_max << 0.0f, 2.0f;
-  EXPECT_TRUE(expected_min.isApprox(min, comparisions::PRECISION<double>))
-      << "Expected value:\n" << expected_min << std::endl
-      << "Actual value:\n" << min;
-  EXPECT_TRUE(expected_max.isApprox(max, comparisions::PRECISION<double>))
-      << "Expected value:\n" << expected_max
-      << "Actual value:\n" << max;
-
-  // x + y + 1 = 0
-  line.coeffs() << M_SQRT2 / 2.0, M_SQRT2 / 2.0, M_SQRT2 / 2.0;
-  projectPolygonOntoLine(polygon, line, min, max);
-
-  expected_min << -0.25, -0.75;
-  expected_max << -0.75, -0.25;
-  EXPECT_TRUE(expected_min.isApprox(min, comparisions::PRECISION<double>))
-      << "Expected value:\n" << expected_min << std::endl
-      << "Actual value:\n" << min;
-  EXPECT_TRUE(expected_max.isApprox(max, comparisions::PRECISION<double>))
-      << "Expected value:\n" << expected_max << std::endl
-      << "Actual value:\n" << max;
-}
-
-TEST(WindDynamicsComponentsTest, GetProjectionLengthTest) {
-  std::vector<b2Vec2> polygon {
+TEST_F(WindDynamicsComponentTest, ZeroWindTest) {
+  b2PolygonShape shape;
+  b2Vec2 edges[4] {
       b2Vec2(0.0f, 0.0f),
-      b2Vec2(1.0f, 1.0f),
-      b2Vec2(1.5f, 2.0f),
-      b2Vec2(2.0f, 1.5f)
-  };
-
-  internal::Line2D line;
-  line.coeffs() << 1.0, 0.0, 0.0;
-  EXPECT_NEAR(2.0, getProjectionLength(polygon, line), comparisions::PRECISION<double>);
-
-  // x + y + 1 = 0
-  line.coeffs() << M_SQRT2 / 2.0, M_SQRT2 / 2.0, M_SQRT2 / 2.0;
-  EXPECT_NEAR(M_SQRT2 / 2.0, getProjectionLength(polygon, line), comparisions::PRECISION<double>);
-}
-
-TEST(WindDynamicsComponentTest, GetLineParallelToWindTest) {
-  b2Vec2 wind(2.0f, 0.0f);
-  internal::Line2D line = getLinePerpendicularToWind(wind);
-  internal::Line2D expected_line;
-  expected_line.coeffs() << 1.0, 0.0, 0.0;
-  EXPECT_TRUE(expected_line.coeffs().isApprox(line.coeffs(), comparisions::PRECISION<double>))
-            << "Expected value:\n" << expected_line.coeffs() << std::endl
-            << "Actual value:\n" << line.coeffs();
-
-  wind.Set(-1.0f, 2.0f);
-  line = getLinePerpendicularToWind(wind);
-  expected_line.coeffs() << (-1.0 / std::sqrt(5)), (2 / std::sqrt(5)), 0.0;
-
-  EXPECT_TRUE(expected_line.coeffs().isApprox(line.coeffs(), comparisions::PRECISION<double>))
-            << "Expected value:\n" << expected_line.coeffs() << std::endl
-            << "Actual value:\n" << line.coeffs();
-}
-
-TEST(WindDynamicsComponentTest, GetAxisOfPolygonTest) {
-  std::vector<b2Vec2> polygon {
-    b2Vec2(0.0f, 0.0f),
-    b2Vec2(1.0f, 0.0f),
-    b2Vec2(1.0f, 1.0f),
-    b2Vec2(0.0f, 1.0f)
-  };
-
-  auto axis = getAxisOfPolygon(polygon);
-  b2EdgeShape expected_axis;
-  expected_axis.Set(b2Vec2(0.0f, 0.0f), b2Vec2(1.0f, 1.0f));
-  EXPECT_EQ(expected_axis, axis);
-
-  polygon = {
-      b2Vec2(1.0f, 0.0f),
-      b2Vec2(3.0f, 1.0f),
-      b2Vec2(4.0f, 0.0f),
-      b2Vec2(3.0f, -1.0f)
-  };
-  axis = getAxisOfPolygon(polygon);
-  expected_axis.Set(b2Vec2(1.0f, 0.0f), b2Vec2(4.0f, 0.0f));
-  EXPECT_EQ(expected_axis, axis);
-
-  polygon = {
-      b2Vec2(1.0f, 0.00f),
-      b2Vec2(0.00f, 0.25f),
-      b2Vec2(-0.5f, 0.20f),
-      b2Vec2(-0.5f, -0.20f),
-      b2Vec2(0.00f, -0.25f)
-  };
-  axis = getAxisOfPolygon(polygon);
-  expected_axis.Set(b2Vec2(1.0f, 0.0f), b2Vec2(-0.5f, 0.0f));
-  EXPECT_EQ(expected_axis, axis);
-
-  polygon = {
-      b2Vec2(-1.0f, 0.0f),
       b2Vec2(1.0f, 0.0f),
       b2Vec2(1.0f, 1.0f),
       b2Vec2(0.0f, 1.0f)
   };
-  axis = getAxisOfPolygon(polygon);
-  EXPECT_FALSE(axis.m_vertex1.IsValid());
-  EXPECT_FALSE(axis.m_vertex2.IsValid());
+  shape.Set(edges, 4);
+
+  b2Vec2 position(0.0f, 0.0f);
+
+  body_component_ = std::make_shared<test::DynamicBodyComponentStub>(world_, shape, position);
+  dynamic_component_ = std::make_shared<WindDynamicsComponent>(body_component_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2_zero));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2_zero, body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2_zero, body_component_->last_local_force_position_);
+}
+
+TEST_F(WindDynamicsComponentTest, NewtonsPerMeterTest) {
+  b2PolygonShape shape;
+  b2Vec2 edges[4] {
+      b2Vec2(0.0f, 0.0f),
+      b2Vec2(1.0f, 0.0f),
+      b2Vec2(1.0f, 1.0f),
+      b2Vec2(0.0f, 1.0f)
+  };
+  shape.Set(edges, 4);
+
+  b2Vec2 position(0.0f, 0.0f);
+
+  body_component_ = std::make_shared<test::DynamicBodyComponentStub>(world_, shape, position);
+  dynamic_component_ = std::make_shared<WindDynamicsComponent>(body_component_, 1.0);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(1.0, 0.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(1.0, 0.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  dynamic_component_->setNewtonsPerMeter(4.0);
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(4.0, 0.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+}
+
+TEST_F(WindDynamicsComponentTest, DifferentWindsTest) {
+  b2PolygonShape shape;
+  b2Vec2 edges[4] {
+      b2Vec2(0.0f, 0.0f),
+      b2Vec2(1.0f, 0.0f),
+      b2Vec2(1.0f, 1.0f),
+      b2Vec2(0.0f, 1.0f)
+  };
+  shape.Set(edges, 4);
+
+  b2Vec2 position(0.0f, 0.0f);
+
+  body_component_ = std::make_shared<test::DynamicBodyComponentStub>(world_, shape, position);
+  dynamic_component_ = std::make_shared<WindDynamicsComponent>(body_component_, 1.0);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(0.0, 1.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, 1.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(1.0, 1.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(1.0, 1.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(0.0, -1.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, -1.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(-1.0, 0.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(-1.0, 0.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(-3.0, 5.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(-3.0, 5.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+}
+
+TEST_F(WindDynamicsComponentTest, TriangleShapeTest) {
+  b2PolygonShape shape;
+  b2Vec2 edges[3] {
+      b2Vec2(0.0f, 1.0f),
+      b2Vec2(-0.25f, 0.0f),
+      b2Vec2(0.25f, 0.0f)
+  };
+  shape.Set(edges, 3);
+
+  b2Vec2 position(0.0f, 0.0f);
+
+  body_component_ = std::make_shared<test::DynamicBodyComponentStub>(world_, shape, position);
+  dynamic_component_ = std::make_shared<WindDynamicsComponent>(body_component_, 1.0);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(0.0, 1.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, 1.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, 0.5), body_component_->last_local_force_position_);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(0.5, -1.0)));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(0.125, -1.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.25, 0.0), body_component_->last_local_force_position_);
+}
+
+TEST_F(WindDynamicsComponentTest, NonZeroVelocityTest) {
+  b2PolygonShape shape;
+  b2Vec2 edges[4] {
+      b2Vec2(0.0f, 0.0f),
+      b2Vec2(1.0f, 0.0f),
+      b2Vec2(1.0f, 1.0f),
+      b2Vec2(0.0f, 1.0f)
+  };
+  shape.Set(edges, 4);
+
+  b2Vec2 position(0.0f, 0.0f);
+
+  body_component_ = std::make_shared<test::DynamicBodyComponentStub>(world_, shape, position);
+  dynamic_component_ = std::make_shared<WindDynamicsComponent>(body_component_, 1.0);
+
+  world_.setWind(std::make_shared<ConstantWind>(b2Vec2(1.0, 0.0)));
+  body_component_->setLinearVelocity(b2Vec2(1.0, 0.0));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, 0.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.0, 0.0), body_component_->last_local_force_position_);
+
+  body_component_->setLinearVelocity(b2Vec2(5.0, -2.0));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(4.0, -2.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
+
+  body_component_->setLinearVelocity(b2Vec2(-1.0, 2.0));
+  dynamic_component_->update(game_object_, world_);
+
+  EXPECT_PRED2(approxEqual, b2Vec2(2.0, 2.0), body_component_->last_local_force_);
+  EXPECT_PRED2(approxEqual, b2Vec2(0.5, 0.5), body_component_->last_local_force_position_);
 }

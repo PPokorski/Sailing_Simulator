@@ -31,36 +31,10 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-
-#include <memory>
+#include "sailing_simulator/objects/input_components/qt_motor_boat_input_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-class GameObject;
-
-class InputComponent {
- public:
-  using Ptr = std::shared_ptr<InputComponent>;
-  using ConstPtr = std::shared_ptr<InputComponent>;
-
-  enum class Action {
-    STEER_LEFT,
-    STEER_RIGHT,
-    USE_THRUST,
-    THRUST_UP,
-    THRUST_DOWN,
-    SAIL_LOOSE,
-    SAIL_TIGHT
-  };
-
-  virtual void update(GameObject& object) = 0;
-
-  virtual ~InputComponent() = default;
-};
 
 }  // namespace objects
 }  // namespace sailing_simulator
-
-#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP

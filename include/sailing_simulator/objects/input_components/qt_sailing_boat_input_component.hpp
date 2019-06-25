@@ -31,36 +31,42 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_SAILING_BOAT_INPUT_COMPONENT_HPP
+#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_SAILING_BOAT_INPUT_COMPONENT_HPP
 
-#include <memory>
+#include <QObject>
+
+#include "sailing_simulator/objects/input_components/input_component.hpp"
+#include "sailing_simulator/objects/dynamics_components/rudder_dynamics_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-class GameObject;
+class QtSailingBoatInputComponent : public QObject, public InputComponent {
+  Q_OBJECT
 
-class InputComponent {
  public:
-  using Ptr = std::shared_ptr<InputComponent>;
-  using ConstPtr = std::shared_ptr<InputComponent>;
+  using Ptr = std::shared_ptr<QtSailingBoatInputComponent>;
+  using ConstPtr = std::shared_ptr<QtSailingBoatInputComponent>;
 
-  enum class Action {
-    STEER_LEFT,
-    STEER_RIGHT,
-    USE_THRUST,
-    THRUST_UP,
-    THRUST_DOWN,
-    SAIL_LOOSE,
-    SAIL_TIGHT
+  explicit QtSailingBoatInputComponent(RudderDynamicsComponent::Ptr rudder)
+      : QObject(nullptr),
+        rudder_(rudder) {}
+
+  void update(GameObject& object) override {
+  }
+
+ public slots:
+  void rotateRudder(double rudder_orientation_change) {
+    if (auto rudder_ptr = rudder_.lock()) {
+      rudder_ptr->rotateRudder(rudder_orientation_change);
+    }
   };
 
-  virtual void update(GameObject& object) = 0;
-
-  virtual ~InputComponent() = default;
+ protected:
+  std::weak_ptr<RudderDynamicsComponent> rudder_;
 };
 
 }  // namespace objects
 }  // namespace sailing_simulator
 
-#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_SAILING_BOAT_INPUT_COMPONENT_HPP

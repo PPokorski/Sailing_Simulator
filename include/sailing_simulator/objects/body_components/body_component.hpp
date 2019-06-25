@@ -52,11 +52,11 @@ class BodyComponent {
 
   virtual ~BodyComponent() = default;
 
-  void applyWorldForce(const b2Vec2& world_force, const b2Vec2& world_position) {
+  virtual void applyWorldForce(const b2Vec2& world_force, const b2Vec2& world_position) {
     body_->ApplyForce(world_force, world_position, true);
   }
 
-  void applyLocalForce(const b2Vec2& local_force, const b2Vec2& local_position) {
+  virtual void applyLocalForce(const b2Vec2& local_force, const b2Vec2& local_position) {
     b2Vec2 global_force = body_->GetWorldVector(local_force);
     b2Vec2 global_position = body_->GetWorldPoint(local_position);
 
@@ -91,8 +91,24 @@ class BodyComponent {
     return body_->GetLinearVelocity();
   }
 
+  void setLinearVelocity(const b2Vec2& linear_velocity) {
+    body_->SetLinearVelocity(linear_velocity);
+  }
+
+  b2Vec2 getLinearVelocityFromLocalPoint(const b2Vec2& local_point) const {
+    return body_->GetLinearVelocityFromLocalPoint(local_point);
+  }
+
+  b2Vec2 getLinearVelocityFromGlobalPoint(const b2Vec2& global_point) const {
+    return body_->GetLinearVelocityFromWorldPoint(global_point);
+  }
+
   double getAngularVelocity() const {
     return body_->GetAngularVelocity();
+  }
+
+  void setAngularVelocity(double angular_velocity) {
+    body_->SetAngularVelocity(angular_velocity);
   }
 
   std::vector<b2Vec2> getShape() const {

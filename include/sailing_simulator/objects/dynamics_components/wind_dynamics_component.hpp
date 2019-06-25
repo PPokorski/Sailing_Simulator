@@ -40,6 +40,7 @@
 
 #include <Eigen/Geometry>
 
+#include "sailing_simulator/constants.hpp"
 #include "sailing_simulator/objects/dynamics_components/dynamics_component.hpp"
 #include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
 
@@ -69,12 +70,22 @@ class WindDynamicsComponent : public DynamicsComponent {
   using Ptr = std::shared_ptr<WindDynamicsComponent>;
   using ConstPtr = std::shared_ptr<WindDynamicsComponent>;
 
-  WindDynamicsComponent(DynamicBodyComponent::Ptr body);
+  WindDynamicsComponent(DynamicBodyComponent::Ptr body, double newtons_per_meter = NEWTONS_PER_M);
 
   void update(GameObject& object, World& world) override;
 
+  double getNewtonsPerMeter() const {
+    return newtons_per_meter_;
+  }
+  void setNewtonsPerMeter(double newtons_per_meter) {
+    newtons_per_meter_ = newtons_per_meter;
+  }
+
  protected:
   std::weak_ptr<DynamicBodyComponent> body_;
+
+  double newtons_per_meter_;
+
   b2EdgeShape symmetry_axis_;
 };
 

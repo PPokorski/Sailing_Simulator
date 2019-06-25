@@ -158,8 +158,9 @@ b2EdgeShape getAxisOfPolygon(const std::vector<b2Vec2>& polygon) {
   return axis;
 }
 
-WindDynamicsComponent::WindDynamicsComponent(DynamicBodyComponent::Ptr body)
-    : body_(body) {
+WindDynamicsComponent::WindDynamicsComponent(DynamicBodyComponent::Ptr body, double newtons_per_meter)
+    : body_(body),
+      newtons_per_meter_(newtons_per_meter) {
   if (auto body_ptr = body_.lock()) {
     symmetry_axis_ = getAxisOfPolygon(body_ptr->getShape());
     if (!symmetry_axis_.m_vertex1.IsValid() ||
@@ -172,7 +173,7 @@ WindDynamicsComponent::WindDynamicsComponent(DynamicBodyComponent::Ptr body)
 void WindDynamicsComponent::update(GameObject& object, World& world) {
   if (auto body_ptr = body_.lock())
   {
-    b2Vec2 global_wind = world.getWind()->getWind(body_ptr->getPosition());
+    b2Vec2 global_wind = world.getWind()->getWind(body_ptr->getPosition()) - body_ptr->getLinearVelocity();
     if (global_wind.Length() < SMALL_WIND) {
       return;
     }
@@ -181,7 +182,8 @@ void WindDynamicsComponent::update(GameObject& object, World& world) {
 
     b2Vec2 wind_local_position = getWindForcePoint(body_ptr->getShape(), local_wind, symmetry_axis_);
 
-    local_wind *= NEWTONS_PER_M * getProjectionLength(body_ptr->getShape(), getLinePerpendicularToWind(local_wind));
+    local_wind *= newtons_per_meter_ * getProjectionLength(body_ptr->getShape(),
+                                                           getLinePerpendicularToWind(local_wind));
 
     body_ptr->applyLocalForce(local_wind, wind_local_position);
   }

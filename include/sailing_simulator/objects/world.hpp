@@ -35,10 +35,14 @@
 #define SAILING_SIMULATOR_OBJECTS_WORLD_HPP
 
 #include <Box2D/Box2D.h>
+#include <include/sailing_simulator/objects/dynamics_components/engine_dynamics_component.hpp>
+#include <include/sailing_simulator/objects/dynamics_components/rudder_dynamics_component.hpp>
 
 #include "sailing_simulator/objects/game_object.hpp"
 #include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
+#include "sailing_simulator/objects/dynamics_components/composite_dynamics_component.hpp"
 #include "sailing_simulator/objects/dynamics_components/wind_dynamics_component.hpp"
+#include "sailing_simulator/objects/input_components/qt_motor_boat_input_component.hpp"
 #include "sailing_simulator/objects/wind/base_wind.hpp"
 
 namespace sailing_simulator {
@@ -56,6 +60,24 @@ class World {
     auto body = std::make_shared<DynamicBodyComponent>(*this, shape, position);
     auto dynamics = std::make_shared<WindDynamicsComponent>(body);
     objects_.emplace_back(body, dynamics, nullptr);
+  }
+
+  void addMotorBoat(DynamicBodyComponent::Ptr body,
+                    EngineDynamicsComponent::Ptr engine,
+                    InputComponent::Ptr input) {
+    auto wind_dynamics = std::make_shared<WindDynamicsComponent>(body);
+    std::vector<DynamicsComponent::Ptr> dynamic_components = {wind_dynamics, engine};
+    auto dynamics = std::make_shared<CompositeDynamicsComponent>(dynamic_components);
+    objects_.emplace_back(body, dynamics, input);
+  }
+
+  void addSailingBoat(DynamicBodyComponent::Ptr body,
+                      RudderDynamicsComponent::Ptr rudder,
+                      InputComponent::Ptr input) {
+    auto wind_dynamics = std::make_shared<WindDynamicsComponent>(body);
+    std::vector<DynamicsComponent::Ptr> dynamic_components = {wind_dynamics, rudder};
+    auto dynamics = std::make_shared<CompositeDynamicsComponent>(dynamic_components);
+    objects_.emplace_back(body, dynamics, input);
   }
 
   const b2World& getWorld() const {
@@ -76,6 +98,10 @@ class World {
 
   BaseWind::ConstPtr getWind() const {
     return wind_;
+  }
+
+  void setWind(BaseWind::Ptr wind) {
+    wind_ = wind;
   }
 
   double getTimeStep() const {

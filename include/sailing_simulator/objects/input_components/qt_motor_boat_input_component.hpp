@@ -31,36 +31,54 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_MOTOR_BOAT_INPUT_COMPONENT_HPP
+#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_MOTOR_BOAT_INPUT_COMPONENT_HPP
 
-#include <memory>
+#include <QObject>
+
+#include "sailing_simulator/objects/input_components/input_component.hpp"
+#include "sailing_simulator/objects/dynamics_components/engine_dynamics_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-class GameObject;
+class QtMotorBoatInputComponent : public QObject, public InputComponent {
+  Q_OBJECT
 
-class InputComponent {
  public:
-  using Ptr = std::shared_ptr<InputComponent>;
-  using ConstPtr = std::shared_ptr<InputComponent>;
+  using Ptr = std::shared_ptr<QtMotorBoatInputComponent>;
+  using ConstPtr = std::shared_ptr<QtMotorBoatInputComponent>;
 
-  enum class Action {
-    STEER_LEFT,
-    STEER_RIGHT,
-    USE_THRUST,
-    THRUST_UP,
-    THRUST_DOWN,
-    SAIL_LOOSE,
-    SAIL_TIGHT
-  };
+  explicit QtMotorBoatInputComponent(EngineDynamicsComponent::Ptr engine)
+      : QObject(nullptr),
+        engine_(engine) {}
 
-  virtual void update(GameObject& object) = 0;
+  void update(GameObject& object) override {
+  }
 
-  virtual ~InputComponent() = default;
+ public slots:
+  void rotateEngine(double engine_orientation_change) {
+    if (auto engine_ptr = engine_.lock()) {
+      engine_ptr->rotateEngine(engine_orientation_change);
+    }
+  }
+
+  void changeThrust(double current_thrust_change) {
+    if (auto engine_ptr = engine_.lock()) {
+      engine_ptr->changeThrust(current_thrust_change);
+    }
+  }
+
+  void setCurrentThrust(double current_thrust) {
+    if (auto engine_ptr = engine_.lock()) {
+      engine_ptr->setCurrentThrust(current_thrust);
+    }
+  }
+
+ protected:
+  std::weak_ptr<EngineDynamicsComponent> engine_;
+
 };
-
 }  // namespace objects
 }  // namespace sailing_simulator
 
-#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENTS_QT_MOTOR_BOAT_INPUT_COMPONENT_HPP

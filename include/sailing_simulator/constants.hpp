@@ -47,5 +47,6 @@ static constexpr double STEER_LENGTH = 0.5;
 static constexpr double NEWTONS_PER_MPS = 10.0;
 static constexpr double NEWTONS_PER_M = 5.0;
 static constexpr double SMALL_WIND = 0.01;
+static constexpr double SMALL_VELOCITY = 0.01;
 
 #endif //SAILING_SIMULATOR_CONSTANTS_HPP

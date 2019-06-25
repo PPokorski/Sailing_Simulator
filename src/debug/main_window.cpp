@@ -38,6 +38,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <QTimer>
+#include <include/sailing_simulator/objects/input_components/qt_sailing_boat_input_component.hpp>
 
 namespace sailing_simulator {
 namespace debug {
@@ -64,7 +65,22 @@ MainWindow::MainWindow(QWidget* parent)
   b2Vec2 engine_position(-0.5f, 0.0f);
   double thrust = 20.0;
 
-  world_.addMotorBoat(shape, position);
+  auto body = std::make_shared<objects::DynamicBodyComponent>(world_, shape, position);
+  auto engine = std::make_shared<objects::EngineDynamicsComponent>(body, thrust, thrust, engine_position);
+  engine_ = engine;
+  auto input = std::make_shared<objects::QtMotorBoatInputComponent>(engine);
+
+  QObject::connect(this, &MainWindow::rotateEngine, input.get(), &objects::QtMotorBoatInputComponent::rotateEngine);
+  QObject::connect(this, &MainWindow::changeThrust, input.get(), &objects::QtMotorBoatInputComponent::changeThrust);
+
+//  world_.addMotorBoat(shape, position);
+//  world_.addMotorBoat(body, engine, input);
+
+  auto rudder = std::make_shared<objects::RudderDynamicsComponent>(body, 0.01, 0.5, engine_position);
+  rudder_ = rudder;
+  auto sail_input = std::make_shared<objects::QtSailingBoatInputComponent>(rudder);
+  QObject::connect(this, &MainWindow::rotateRudder, sail_input.get(), &objects::QtSailingBoatInputComponent::rotateRudder);
+  world_.addSailingBoat(body, rudder, sail_input);
 
   timer_ = new QTimer(this);
   connect(timer_, SIGNAL(timeout()), this, SLOT(updateEngine()));
@@ -101,13 +117,18 @@ void MainWindow::paintEvent(QPaintEvent* event) {
   painter.setBrush(point_.second);
   painter.drawRect(point_.first);
 
+//  QString string = QString("Steer position: %1\nThrust: %2").
+//      arg(engine_->getEngineOrientation()).
+//      arg(engine_->getCurrentThrust());
+  QString string = QString("Steer position: %1").
+      arg(rudder_->getRudderOrientation());
 //  QString string = QString("Linear velocity: %1 %2\nAngular velocity: %3\nSteer position: %4").
 //      arg(world_.getMotorBoat()->getLinearVelocity().x).
 //      arg(world_.getMotorBoat()->getLinearVelocity().y).
 //      arg(world_.getMotorBoat()->getAngularVelocity()).
 //      arg(world_.getMotorBoat()->getSteerPosition());
-//  label_->setText(string);
-//  label_->adjustSize();
+  label_->setText(string);
+  label_->adjustSize();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event) {
@@ -115,15 +136,23 @@ void MainWindow::keyPressEvent(QKeyEvent *event) {
 
   switch (event->key())
   {
-//    case Qt::Key_Up:
+    case Qt::Key_Up:
+      emit changeThrust(1.0);
 //      world_.getMotorBoat()->thrustOn();
-//      break;
-//    case Qt::Key_Left:
+      break;
+    case Qt::Key_Down:
+      emit changeThrust(-1.0);
+      break;
+    case Qt::Key_Left:
+      emit rotateEngine(-0.02);
+      emit rotateRudder(-0.02);
 //      turn_left_ = true;
-//      break;
-//    case Qt::Key_Right:
+      break;
+    case Qt::Key_Right:
+      emit rotateEngine(+0.02);
+      emit rotateRudder(0.02);
 //      turn_right_ = true;
-//      break;
+      break;
   }
 }
 

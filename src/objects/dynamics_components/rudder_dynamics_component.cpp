@@ -31,32 +31,49 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include "sailing_simulator/objects/dynamics_components/engine_dynamics_component.hpp"
-
 #include "sailing_simulator/constants.hpp"
-#include "sailing_simulator/objects/world.hpp"
+#include "sailing_simulator/objects/dynamics_components/rudder_dynamics_component.hpp"
 
 namespace sailing_simulator {
 namespace objects {
-EngineDynamicsComponent::EngineDynamicsComponent(DynamicBodyComponent::Ptr body,
-                                                 double max_thrust_forward,
-                                                 double max_thrust_backwards,
-                                                 const b2Vec2& thrust_position)
+RudderDynamicsComponent::RudderDynamicsComponent(DynamicBodyComponent::Ptr body,
+                                                 double force_multiplier,
+                                                 double rudder_length,
+                                                 const b2Vec2& rudder_position)
     : body_(body),
-      max_thrust_forward_(max_thrust_forward),
-      max_thrust_backwards_(max_thrust_backwards),
-      thrust_position_(thrust_position),
-      current_thrust_(0.0),
-      engine_orientation_(0.0) {}
+      force_multiplier_(force_multiplier),
+      rudder_length_(rudder_length),
+      rudder_position_(rudder_position),
+      rudder_orientation_(0.0) {}
 
-
-void EngineDynamicsComponent::update(GameObject& object, World& world) {
+void RudderDynamicsComponent::update(GameObject& object, World& world) {
   if (auto body_ptr = body_.lock()) {
-    b2Vec2 thrust_vector(+std::cos(engine_orientation_) * current_thrust_,
-                         -std::sin(engine_orientation_) * current_thrust_);
+    b2Vec2 relative_rudder_midpoint(-rudder_length_ * std::cos(rudder_orientation_ / 2.0),
+                                    -rudder_length_ * std::sin(rudder_orientation_ / 2.0));
 
-    body_ptr->applyLocalForce(thrust_vector, thrust_position_);
+    b2Vec2 force_position = rudder_position_ + relative_rudder_midpoint;
+    b2Vec2 midpoint_rudder_velocity = body_ptr->getLinearVelocityFromLocalPoint(force_position);
+    if (midpoint_rudder_velocity.LengthSquared() < SMALL_VELOCITY) {
+      return;
+    }
+
+    double force_value = force_multiplier_ *
+                         rudder_length_ *
+                         midpoint_rudder_velocity.LengthSquared() *
+                         sinBetweenVectors(relative_rudder_midpoint, midpoint_rudder_velocity);
+    double force_orientation = rudder_orientation_ + M_PI;
+    b2Vec2 local_force(force_value * std::sin(force_orientation),
+                       force_value * std::cos(force_orientation));
+
+    body_ptr->applyLocalForce(local_force, force_position);
   }
+}
+
+double RudderDynamicsComponent::sinBetweenVectors(const b2Vec2& one, const b2Vec2& two) const {
+  // From https://www.wikihow.com/Find-the-Angle-Between-Two-Vectors
+  double cos = b2Dot(one, two) / (one.Length() * two.Length());
+
+  return std::sqrt(1 - cos * cos);
 }
 }  // namespace objects
 }  // namespace sailing_simulator

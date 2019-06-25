@@ -31,36 +31,37 @@
 *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#ifndef SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
-#define SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#ifndef TEST_TEST_DYNAMIC_BODY_COMPONENT_STUB_HPP
+#define TEST_TEST_DYNAMIC_BODY_COMPONENT_STUB_HPP
 
-#include <memory>
+#include "sailing_simulator/objects/body_components/dynamic_body_component.hpp"
 
-namespace sailing_simulator {
-namespace objects {
-class GameObject;
-
-class InputComponent {
+namespace test {
+class DynamicBodyComponentStub : public sailing_simulator::objects::DynamicBodyComponent {
  public:
-  using Ptr = std::shared_ptr<InputComponent>;
-  using ConstPtr = std::shared_ptr<InputComponent>;
+  using Ptr = std::shared_ptr<DynamicBodyComponentStub>;
+  using ConstPtr = std::shared_ptr<DynamicBodyComponentStub>;
 
-  enum class Action {
-    STEER_LEFT,
-    STEER_RIGHT,
-    USE_THRUST,
-    THRUST_UP,
-    THRUST_DOWN,
-    SAIL_LOOSE,
-    SAIL_TIGHT
-  };
+  DynamicBodyComponentStub(sailing_simulator::objects::World& world,
+                           const b2PolygonShape& shape,
+                           const b2Vec2& position)
+    : DynamicBodyComponent(world, shape, position) {}
 
-  virtual void update(GameObject& object) = 0;
+  void applyWorldForce(const b2Vec2& world_force, const b2Vec2& world_position) override {
+    last_global_force_ = world_force;
+    last_global_force_position_ = world_position;
+  }
 
-  virtual ~InputComponent() = default;
+  void applyLocalForce(const b2Vec2& local_force, const b2Vec2& local_position) override {
+    last_local_force_ = local_force;
+    last_local_force_position_ = local_position;
+
+    DynamicBodyComponent::applyLocalForce(local_force, local_position);
+  }
+
+  b2Vec2 last_local_force_ = b2Vec2_zero, last_global_force_ = b2Vec2_zero;
+  b2Vec2 last_local_force_position_ = b2Vec2_zero, last_global_force_position_ = b2Vec2_zero;
 };
+}  // namespace test
 
-}  // namespace objects
-}  // namespace sailing_simulator
-
-#endif //SAILING_SIMULATOR_OBJECTS_INPUT_COMPONENT_HPP
+#endif //TEST_TEST_DYNAMIC_BODY_COMPONENT_STUB_HPP

@@ -36,6 +36,8 @@
 
 #include <Box2D/Box2D.h>
 
+#include <gtest/gtest.h>
+
 namespace comparisions {
 
 template<class T>
@@ -43,9 +45,18 @@ constexpr static T PRECISION = T(0.0001);
 
 }  // namespace comparisions
 
+inline bool approxEqual(const b2Vec2& lhs, const b2Vec2& rhs) {
+  return std::fabs(lhs.x - lhs.x) <= comparisions::PRECISION<double> &&
+         std::fabs(lhs.y - lhs.y) <= comparisions::PRECISION<double>;
+}
+
 inline bool operator==(const b2EdgeShape& lhs, const b2EdgeShape& rhs) {
-  return lhs.m_vertex1 == rhs.m_vertex1 &&
-         lhs.m_vertex2 == rhs.m_vertex2;
+  return approxEqual(lhs.m_vertex1, rhs.m_vertex1) &&
+         approxEqual(lhs.m_vertex2, rhs.m_vertex2);
+}
+
+inline std::ostream& operator<<(std::ostream& os, const b2Vec2& vec) {
+  return os << "[" << vec.x << ", " << vec.y << "]";
 }
 
 #endif //TEST_TEST_COMPARISIONS_HPP
