@@ -46,8 +46,8 @@ constexpr static T PRECISION = T(0.0001);
 }  // namespace comparisions
 
 inline bool approxEqual(const b2Vec2& lhs, const b2Vec2& rhs) {
-  return std::fabs(lhs.x - lhs.x) <= comparisions::PRECISION<double> &&
-         std::fabs(lhs.y - lhs.y) <= comparisions::PRECISION<double>;
+  return std::fabs(lhs.x - rhs.x) <= comparisions::PRECISION<double> &&
+         std::fabs(lhs.y - rhs.y) <= comparisions::PRECISION<double>;
 }
 
 inline bool operator==(const b2EdgeShape& lhs, const b2EdgeShape& rhs) {

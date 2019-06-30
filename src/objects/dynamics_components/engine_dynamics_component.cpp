@@ -52,8 +52,8 @@ EngineDynamicsComponent::EngineDynamicsComponent(DynamicBodyComponent::Ptr body,
 
 void EngineDynamicsComponent::update(GameObject& object, World& world) {
   if (auto body_ptr = body_.lock()) {
-    b2Vec2 thrust_vector(+std::cos(engine_orientation_) * current_thrust_,
-                         -std::sin(engine_orientation_) * current_thrust_);
+    b2Vec2 thrust_vector(std::cos(engine_orientation_) * current_thrust_,
+                         std::sin(engine_orientation_) * current_thrust_);
 
     body_ptr->applyLocalForce(thrust_vector, thrust_position_);
   }

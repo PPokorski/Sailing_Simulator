@@ -63,6 +63,7 @@ target_link_libraries(${PROJECT_NAME}
 
 add_executable(${PROJECT_NAME}_test
         test/src/objects/body_components/dynamic_body_component_test.cpp
+        test/src/objects/dynamics_components/engine_dynamics_component_test.cpp
         test/src/objects/dynamics_components/wind_dynamics_component_helpers_test.cpp
         test/src/objects/dynamics_components/wind_dynamics_component_test.cpp)
 
